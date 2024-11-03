@@ -1,22 +1,11 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('../bin/db.js');
+const authRoutes = require('./auth');
+const router = express.Router();
 
-dotenv.config();
-
-const app = express();
-const port = process.env.PORT || 3000;
-
-app.use(express.json());
-
-connectDB();
-
-// Route de base pour tester la connexion
-app.get('/', (req, res) => {
-    res.send('API is running and connected to MongoDB');
+router.get('/', (req, res) => {
+    res.send('Bienvenue sur l\'API sMatch !');
 });
 
-// Démarrer le serveur
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+router.use('/auth', authRoutes);
+
+module.exports = router;
