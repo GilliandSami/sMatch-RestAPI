@@ -22,6 +22,41 @@ exports.getPosts = async (req, res) => {
     }
 };
 
+// Récupérer des posts avec pagination et filtres optionnels
+exports.getFilteredPosts = async (req, res) => {
+    const { page = 1, limit = 10, userId, keyword } = req.query;
+
+    try {
+        const query = {};
+
+        // Filtre par utilisateur (si userId est fourni)
+        if (userId) {
+            query.user = userId;
+        }
+
+        // Filtre par mot-clé dans le contenu (si keyword est fourni)
+        if (keyword) {
+            query.content = { $regex: keyword, $options: 'i' }; // Recherche insensible à la casse
+        }
+
+        const posts = await Post.find(query)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .populate('user', 'username'); // Peupler avec le nom de l'utilisateur
+
+        const totalPosts = await Post.countDocuments(query); // Compter le nombre total de documents correspondant
+
+        res.json({
+            total: totalPosts,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            results: posts,
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
+
 // Récupérer tous les posts d'un utilisateur spécifique
 exports.getPostsByUser = async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth');
-const { createComment, getCommentsByPost, getCommentsByUser, updateComment, deleteComment, likeComment, unlikeComment } = require('../controllers/commentController');
+const { createComment, getCommentsByPost, getCommentsByUser, getFilteredCommentsByPost, updateComment, deleteComment, likeComment, unlikeComment } = require('../controllers/commentController');
 const { validateCommentCreation } = require('../validators/commentValidator');
 const router = express.Router();
 
@@ -9,6 +9,9 @@ router.post('/', protect, validateCommentCreation, createComment);
 
 // Récupérer les commentaires d'un message spécifique avec pagination
 router.get('/:postId', protect, getCommentsByPost);
+
+// Récupérer les commentaires d'un message spécifique avec pagination et filtres
+router.get('/paginate/:postId', protect, getFilteredCommentsByPost);
 
 // Récupérer tous les commentaires d'un utilisateur spécifique
 router.get('/user/:userId', protect, getCommentsByUser);

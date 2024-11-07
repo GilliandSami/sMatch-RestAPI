@@ -25,6 +25,36 @@ exports.getCommentsByPost = async (req, res) => {
     }
 };
 
+// Récupérer les commentaires d'un post spécifique avec pagination et filtre optionnel par mot-clé
+exports.getFilteredCommentsByPost = async (req, res) => {
+    const { page = 1, limit = 10, keyword } = req.query;
+
+    try {
+        const query = { post: req.params.postId };
+
+        // Filtre par mot-clé dans le contenu (si keyword est fourni)
+        if (keyword) {
+            query.content = { $regex: keyword, $options: 'i' }; // Recherche insensible à la casse
+        }
+
+        const comments = await Comment.find(query)
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .populate('user', 'username'); // Peupler avec le nom de l'utilisateur
+
+        const totalComments = await Comment.countDocuments(query); // Compter le nombre total de documents correspondant
+
+        res.json({
+            total: totalComments,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            results: comments,
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
+
 // Récupérer tous les commentaires d'un utilisateur spécifique
 exports.getCommentsByUser = async (req, res) => {
     try {

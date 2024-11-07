@@ -1,6 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth');
-const { createPost, getPosts, getPostsByUser, updatePost, deletePost, likePost, unlikePost } = require('../controllers/postController');
+const { createPost, getPosts, getPostsByUser, getFilteredPosts, updatePost, deletePost, likePost, unlikePost } = require('../controllers/postController');
 const { validatePostCreation } = require('../validators/postValidator');
 const router = express.Router();
 
@@ -9,6 +9,9 @@ router.post('/', protect, validatePostCreation, createPost);
 
 // Récupérer une liste de posts avec pagination
 router.get('/', protect, getPosts);
+
+// Récupérer une liste de posts avec pagination et filtres
+router.get('/paginate', protect, getFilteredPosts);
 
 // Récupérer tous les posts d'un utilisateur spécifique
 router.get('/user/:userId', protect, getPostsByUser);
