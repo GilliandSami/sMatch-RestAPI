@@ -1,5 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth');
+const upload = require('../middleware/imageUpload');
 const { createPost, getPosts, getPostsByUser, getFilteredPosts, updatePost, deletePost, likePost, unlikePost } = require('../controllers/postController');
 const { validatePostCreation } = require('../validators/postValidator');
 const router = express.Router();

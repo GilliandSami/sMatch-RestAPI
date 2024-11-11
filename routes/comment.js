@@ -1,5 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth');
+const upload = require('../middleware/imageUpload');
 const { createComment, getCommentsByPost, getCommentsByUser, getFilteredCommentsByPost, updateComment, deleteComment, likeComment, unlikeComment } = require('../controllers/commentController');
 const { validateCommentCreation } = require('../validators/commentValidator');
 const router = express.Router();
