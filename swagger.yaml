@@ -17,37 +17,21 @@ paths:
       tags:
         - Auth
       requestBody:
-        description: Les informations de l'utilisateur à enregistrer
+        description: Informations de l'utilisateur à enregistrer
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  minLength: 6
-              required:
-                - username
-                - email
-                - password
+              $ref: '#/components/schemas/RegisterUser'
       responses:
         '201':
           description: Utilisateur créé avec succès
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: '#/components/schemas/AuthResponse'
         '400':
-          description: Données invalides ou utilisateur déjà existant
+          description: Données invalides ou utilisateur existant
 
   /auth/login:
     post:
@@ -60,31 +44,218 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-              required:
-                - email
-                - password
+              $ref: '#/components/schemas/LoginUser'
       responses:
         '200':
           description: Connexion réussie
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
+                $ref: '#/components/schemas/AuthResponse'
         '400':
           description: Identifiants incorrects
 
+  /comments:
+    post:
+      summary: Créer un commentaire
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Contenu et post associé au commentaire
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComment'
+      responses:
+        '201':
+          description: Commentaire créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+        '400':
+          description: Données de commentaire invalides
+
+  /comments/{postId}:
+    get:
+      summary: Récupérer les commentaires d'un post avec pagination
+      tags:
+        - Comments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: ID du post
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des commentaires récupérée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommentResponse'
+        '500':
+          description: Erreur serveur
+
+  /groups:
+    post:
+      summary: Créer un groupe
+      tags:
+        - Groups
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Informations pour créer un groupe
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroup'
+      responses:
+        '201':
+          description: Groupe créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponse'
+        '400':
+          description: Données de groupe invalides
+
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
+    RegisterUser:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+      required:
+        - username
+        - email
+        - password
+
+    LoginUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token pour authentification
+
+    CreateComment:
+      type: object
+      properties:
+        content:
+          type: string
+          description: "Contenu du commentaire"
+        post:
+          type: string
+          description: "ID du post associé au commentaire"
+      required:
+        - content
+        - post
+
+    CommentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        postId:
+          type: string
+        user:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        likes:
+          type: array
+          items:
+            type: string
+
+    CreateGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Nom du groupe"
+        description:
+          type: string
+          description: "Description du groupe"
+      required:
+        - name
+
+    GroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        members:
+          type: array
+          items:
+            type: string
+
     Post:
       type: object
       properties:
@@ -103,3 +274,37 @@ components:
           type: array
           items:
             type: string
+
+  responses:
+    BadRequest:
+      description: "Erreur de validation des données"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Données invalides"
+
+    Unauthorized:
+      description: "Accès refusé. Authentification requise"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Token non valide ou absent"
+
+    ServerError:
+      description: "Erreur de serveur"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Erreur de serveur interne"
