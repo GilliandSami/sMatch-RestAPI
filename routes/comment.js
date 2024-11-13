@@ -6,7 +6,7 @@ const { validateCommentCreation } = require('../validators/commentValidator');
 const router = express.Router();
 
 // Créer un commentaire (utilisateur authentifié requis)
-router.post('/', protect, validateCommentCreation, createComment);
+router.post('/', protect, upload.single('media_uri'), validateCommentCreation, createComment);
 
 // Récupérer les commentaires d'un message spécifique avec pagination
 router.get('/:postId', protect, getCommentsByPost);

@@ -3,7 +3,12 @@ const Comment = require('../models/Comment');
 // Créer un commentaire
 exports.createComment = async (req, res) => {
     try {
-        const comment = new Comment({ ...req.body, user: req.user.id });
+        const comment = new Comment({
+            content: req.body.content,
+            post: req.body.post,
+            user: req.user.id,
+            media_uri: req.file ? req.file.path : null // URL de l'image sur Cloudinary
+        });
         await comment.save();
         res.status(201).json(comment);
     } catch (error) {

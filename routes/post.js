@@ -6,7 +6,7 @@ const { validatePostCreation } = require('../validators/postValidator');
 const router = express.Router();
 
 // Créer un post (utilisateur authentifié requis)
-router.post('/', protect, validatePostCreation, createPost);
+router.post('/', protect, upload.single('media_uri'), validatePostCreation, createPost);
 
 // Récupérer une liste de posts avec pagination
 router.get('/', protect, getPosts);

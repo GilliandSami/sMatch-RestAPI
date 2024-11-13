@@ -3,7 +3,11 @@ const Post = require('../models/Post');
 // Créer un post
 exports.createPost = async (req, res) => {
     try {
-        const post = new Post({ ...req.body, user: req.user.id });
+        const post = new Post({
+            content: req.body.content,
+            user: req.user.id,
+            media_uri: req.file ? req.file.path : null // URL de l'image sur Cloudinary
+        });
         await post.save();
         res.status(201).json(post);
     } catch (error) {
