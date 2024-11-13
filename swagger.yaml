@@ -1,0 +1,105 @@
+openapi: 3.0.0
+info:
+  title: sMatch API Documentation
+  version: 1.0.0
+  description: >
+    Documentation de l'API REST pour l'application sMatch.
+    Cette documentation couvre toutes les routes disponibles, leurs paramètres, en-têtes, corps de requête, et les réponses possibles.
+
+servers:
+  - url: http://localhost:5000/api
+    description: Serveur local
+
+paths:
+  /auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags:
+        - Auth
+      requestBody:
+        description: Les informations de l'utilisateur à enregistrer
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+              required:
+                - username
+                - email
+                - password
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Données invalides ou utilisateur déjà existant
+
+  /auth/login:
+    post:
+      summary: Connexion d'un utilisateur existant
+      tags:
+        - Auth
+      requestBody:
+        description: Identifiants de connexion de l'utilisateur
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Identifiants incorrects
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        media_uri:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        user:
+          type: string
+        likes:
+          type: array
+          items:
+            type: string
