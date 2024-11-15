@@ -1,3 +1,5 @@
+<p align="center"><img src="images/Smatch.png" width="400" alt="Logo Smatch - Projet HEIG-VD RestAPI"></p>
+
 # 🎯 **sMatch**
 
 **sMatch** est une API REST créée dans le cadre du cours *"Architecture orientée Web"* à la [HEIG-VD]. Ce projet a pour objectif de réaliser une plateforme sociale pour les étudiants, inspirée de Twitter, où ils peuvent interagir, partager des messages, et collaborer dans des groupes.
