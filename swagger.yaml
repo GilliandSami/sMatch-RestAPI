@@ -1,14 +1,14 @@
 openapi: 3.0.0
 info:
-  title: sMatch API Documentation
+  title: Documentation RestAPI - sMatch
   version: 1.0.0
   description: >
     Documentation de l'API REST pour l'application sMatch.
     Cette documentation couvre toutes les routes disponibles, leurs paramètres, en-têtes, corps de requête, et les réponses possibles.
 
 servers:
-  - url: http://localhost:5000/api
-    description: Serveur local
+  - url: http://localhost:3000/api
+    description: Serveur RestAPI - sMatch
 
 paths:
   /auth/register:
@@ -17,21 +17,36 @@ paths:
       tags:
         - Auth
       requestBody:
-        description: Informations de l'utilisateur à enregistrer
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterUser'
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+              required:
+                - username
+                - email
+                - password
       responses:
         '201':
           description: Utilisateur créé avec succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                type: object
+                properties:
+                  token:
+                    type: string
         '400':
-          description: Données invalides ou utilisateur existant
+          description: Données invalides ou utilisateur déjà existant
 
   /auth/login:
     post:
@@ -39,77 +54,216 @@ paths:
       tags:
         - Auth
       requestBody:
-        description: Identifiants de connexion de l'utilisateur
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginUser'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
       responses:
         '200':
           description: Connexion réussie
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthResponse'
+                type: object
+                properties:
+                  token:
+                    type: string
         '400':
           description: Identifiants incorrects
 
-  /comments:
-    post:
-      summary: Créer un commentaire
+  /users:
+    get:
+      summary: Récupérer tous les utilisateurs
       tags:
-        - Comments
-      security:
-        - BearerAuth: []
+        - Users
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      summary: Récupérer un utilisateur par son ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Détails de l'utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+    patch:
+      summary: Mettre à jour les informations d'un utilisateur
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
       requestBody:
-        description: Contenu et post associé au commentaire
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateComment'
+              type: object
+              properties:
+                username:
+                  type: string
+                bio:
+                  type: string
       responses:
-        '201':
-          description: Commentaire créé avec succès
+        '200':
+          description: Utilisateur mis à jour
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommentResponse'
-        '400':
-          description: Données de commentaire invalides
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Accès refusé
+        '404':
+          description: Utilisateur non trouvé
 
-  /comments/{postId}:
-    get:
-      summary: Récupérer les commentaires d'un post avec pagination
+    delete:
+      summary: Supprimer un utilisateur
       tags:
-        - Comments
-      security:
-        - BearerAuth: []
+        - Users
       parameters:
-        - name: postId
+        - name: id
           in: path
           required: true
-          description: ID du post
           schema:
             type: string
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Utilisateur supprimé
+        '403':
+          description: Accès refusé
+        '404':
+          description: Utilisateur non trouvé
+
+  /users/{id}/follow:
+    post:
+      summary: Suivre un utilisateur
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à suivre
+      responses:
+        '200':
+          description: Utilisateur suivi avec succès
+        '404':
+          description: Utilisateur non trouvé
+
+    delete:
+      summary: Ne plus suivre un utilisateur
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à ne plus suivre
+      responses:
+        '200':
+          description: Utilisateur non suivi avec succès
+        '404':
+          description: Utilisateur non trouvé
+
+  /users/{id}/stats:
+    get:
+      summary: Obtenir les statistiques d'un utilisateur
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Statistiques de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  postCount:
+                    type: integer
+                  followerCount:
+                    type: integer
+        '404':
+          description: Utilisateur non trouvé
+
+  /posts:
+    get:
+      summary: Récupérer une liste de posts avec pagination et filtres
+      tags:
+        - Posts
+      parameters:
         - name: page
           in: query
           schema:
             type: integer
             default: 1
+          description: Numéro de la page
         - name: limit
           in: query
           schema:
             type: integer
             default: 10
+          description: Nombre de résultats par page
+        - name: userId
+          in: query
+          schema:
+            type: string
+          description: Filtrer les posts d'un utilisateur spécifique
         - name: keyword
           in: query
           schema:
             type: string
+          description: Filtrer les posts par mot-clé dans le contenu
       responses:
         '200':
-          description: Liste des commentaires récupérée
+          description: Liste des posts
           content:
             application/json:
               schema:
@@ -124,137 +278,583 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: '#/components/schemas/CommentResponse'
-        '500':
-          description: Erreur serveur
+                      $ref: '#/components/schemas/Post'
+
+    post:
+      summary: Créer un nouveau post avec une image
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                media_uri:
+                  type: string
+                  format: binary
+              required:
+                - content
+      responses:
+        '201':
+          description: Post créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Données invalides
+          
+  /posts/paginate:
+    get:
+      summary: Récupérer une liste de posts avec pagination et filtres
+      tags:
+        - Posts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de la page
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de résultats par page
+        - name: userId
+          in: query
+          schema:
+            type: string
+          description: Filtrer les posts d'un utilisateur spécifique
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: Filtrer les posts par mot-clé dans le contenu
+      responses:
+        '200':
+          description: Liste des posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+
+  /posts/{id}:
+    patch:
+      summary: Mettre à jour un post
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Post mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '403':
+          description: Accès refusé
+        '404':
+          description: Post non trouvé
+
+    delete:
+      summary: Supprimer un post
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+      responses:
+        '200':
+          description: Post supprimé avec succès
+        '403':
+          description: Accès refusé
+        '404':
+          description: Post non trouvé
+
+  /posts/{id}/like:
+    post:
+      summary: Liker un post
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+      responses:
+        '200':
+          description: Post liké avec succès
+        '404':
+          description: Post non trouvé
+
+    delete:
+      summary: Retirer le like d'un post
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+      responses:
+        '200':
+          description: Like retiré avec succès
+        '404':
+          description: Post non trouvé
+  /comments:
+    post:
+      summary: Créer un commentaire
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                post:
+                  type: string
+                  description: ID du post auquel le commentaire appartient
+                media_uri:
+                  type: string
+                  format: binary
+              required:
+                - content
+                - post
+      responses:
+        '201':
+          description: Commentaire créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Données invalides
+
+  /comments/{postId}:
+    get:
+      summary: Récupérer les commentaires d'un post avec pagination
+      tags:
+        - Comments
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de la page
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de commentaires par page
+      responses:
+        '200':
+          description: Liste des commentaires du post
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+
+  /comments/paginate/{postId}:
+    get:
+      summary: Récupérer les commentaires d'un post avec pagination et filtres
+      tags:
+        - Comments
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du post
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Numéro de la page
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Nombre de commentaires par page
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: Filtrer les commentaires par mot-clé dans le contenu
+      responses:
+        '200':
+          description: Liste des commentaires du post filtrés
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+
+  /comments/user/{userId}:
+    get:
+      summary: Récupérer tous les commentaires d'un utilisateur spécifique
+      tags:
+        - Comments
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur
+      responses:
+        '200':
+          description: Liste des commentaires de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+
+  /comments/{id}:
+    patch:
+      summary: Mettre à jour un commentaire
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du commentaire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Commentaire mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '403':
+          description: Accès refusé
+        '404':
+          description: Commentaire non trouvé
+
+    delete:
+      summary: Supprimer un commentaire
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Commentaire supprimé avec succès
+        '403':
+          description: Accès refusé
+        '404':
+          description: Commentaire non trouvé
+
+  /comments/{id}/like:
+    post:
+      summary: Liker un commentaire
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Commentaire liké avec succès
+        '404':
+          description: Commentaire non trouvé
+
+    delete:
+      summary: Retirer le like d'un commentaire
+      tags:
+        - Comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du commentaire
+      responses:
+        '200':
+          description: Like retiré avec succès
+        '404':
+          description: Commentaire non trouvé
 
   /groups:
     post:
       summary: Créer un groupe
       tags:
         - Groups
-      security:
-        - BearerAuth: []
       requestBody:
-        description: Informations pour créer un groupe
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateGroup'
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+              required:
+                - name
       responses:
         '201':
           description: Groupe créé avec succès
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GroupResponse'
+                $ref: '#/components/schemas/Group'
         '400':
-          description: Données de groupe invalides
+          description: Données invalides
+
+    get:
+      summary: Récupérer les groupes avec possibilité de filtre
+      tags:
+        - Groups
+      parameters:
+        - name: createdBy
+          in: query
+          schema:
+            type: string
+          description: ID de l'utilisateur qui a créé le groupe (pour filtrer)
+      responses:
+        '200':
+          description: Liste des groupes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+
+  /groups/{id}:
+    patch:
+      summary: Mettre à jour un groupe
+      tags:
+        - Groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Groupe mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '403':
+          description: Accès refusé (seulement pour les admins)
+        '404':
+          description: Groupe non trouvé
+
+    delete:
+      summary: Supprimer un groupe
+      tags:
+        - Groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      responses:
+        '200':
+          description: Groupe supprimé avec succès
+        '403':
+          description: Accès refusé (seulement pour les admins)
+        '404':
+          description: Groupe non trouvé
+
+  /groups/{id}/members:
+    post:
+      summary: Ajouter un membre à un groupe
+      tags:
+        - Groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  description: ID de l'utilisateur à ajouter
+                role:
+                  type: string
+                  enum: [admin, member]
+                  default: member
+      responses:
+        '200':
+          description: Membre ajouté au groupe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '404':
+          description: Groupe ou utilisateur non trouvé
+
+  /groups/{id}/members/{userId}:
+    delete:
+      summary: Supprimer un membre d'un groupe
+      tags:
+        - Groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID du groupe
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à supprimer
+      responses:
+        '200':
+          description: Membre retiré du groupe
+        '403':
+          description: Accès refusé (seulement pour les admins)
+        '404':
+          description: Groupe ou utilisateur non trouvé
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
-    RegisterUser:
+    User:
       type: object
       properties:
+        id:
+          type: string
         username:
           type: string
         email:
           type: string
           format: email
-        password:
-          type: string
-          minLength: 6
-      required:
-        - username
-        - email
-        - password
-
-    LoginUser:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-      required:
-        - email
-        - password
-
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-          description: JWT token pour authentification
-
-    CreateComment:
-      type: object
-      properties:
-        content:
-          type: string
-          description: "Contenu du commentaire"
-        post:
-          type: string
-          description: "ID du post associé au commentaire"
-      required:
-        - content
-        - post
-
-    CommentResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        content:
-          type: string
-        postId:
-          type: string
-        user:
+        bio:
           type: string
         created_at:
           type: string
           format: date-time
-        likes:
-          type: array
-          items:
-            type: string
-
-    CreateGroup:
-      type: object
-      properties:
-        name:
-          type: string
-          description: "Nom du groupe"
-        description:
-          type: string
-          description: "Description du groupe"
-      required:
-        - name
-
-    GroupResponse:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        members:
-          type: array
-          items:
-            type: string
 
     Post:
       type: object
@@ -275,36 +875,51 @@ components:
           items:
             type: string
 
-  responses:
-    BadRequest:
-      description: "Erreur de validation des données"
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: "Données invalides"
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+        media_uri:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        user:
+          type: string
+        post:
+          type: string
+        likes:
+          type: array
+          items:
+            type: string
 
-    Unauthorized:
-      description: "Accès refusé. Authentification requise"
-      content:
-        application/json:
-          schema:
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        created_by:
+          type: string
+        members:
+          type: array
+          items:
             type: object
             properties:
-              message:
+              user:
                 type: string
-                example: "Token non valide ou absent"
-
-    ServerError:
-      description: "Erreur de serveur"
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
+              role:
                 type: string
-                example: "Erreur de serveur interne"
+                enum: [admin, member]
+              joined_at:
+                type: string
+                format: date-time
+        created_at:
+          type: string
+          format: date-time
