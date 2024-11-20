@@ -83,10 +83,10 @@ Créez un fichier .env à la racine avec les variables suivantes :
 ```shell script
 PORT=3000
 MONGO_URI=mongodb://127.0.0.1/archioweb
-JWT_SECRET=bigfloetolituconnaisnon
-CLOUDINARY_CLOUD_NAME=dkdovlzbs
-CLOUDINARY_API_KEY=337781284895726
-CLOUDINARY_API_SECRET=zXCe3eEripq1JJZzYtSWQFVBlig
+JWT_SECRET=a-demander
+CLOUDINARY_CLOUD_NAME=a-demander
+CLOUDINARY_API_KEY=a-demander
+CLOUDINARY_API_SECRET=a-demander
 ```
 
 ### **Lancer le serveur**
