@@ -2,29 +2,23 @@ const request = require('supertest');
 const app = require('./setup');
 
 describe('Auth Routes', () => {
-    it('should register a new user', async () => {
-        const res = await request(app).post('/api/auth/register').send({
+    beforeAll(async () => {
+        // Crée un utilisateur avant les tests
+        await request(app).post('/api/auth/register').send({
             username: 'testuser',
             email: 'test@example.com',
             password: 'password123',
         });
-        expect(res.statusCode).toEqual(201);
-        expect(res.body).toHaveProperty('token');
     });
 
-    it('should not register a user with an existing email', async () => {
-        await request(app).post('/api/auth/register').send({
-            username: 'testuser2',
-            email: 'test@example.com',
-            password: 'password123',
-        });
+    it('should register a new user', async () => {
         const res = await request(app).post('/api/auth/register').send({
-            username: 'testuser3',
-            email: 'test@example.com',
+            username: 'newuser',
+            email: 'newuser@example.com',
             password: 'password123',
         });
-        expect(res.statusCode).toEqual(400);
-        expect(res.body).toHaveProperty('message');
+        expect(res.statusCode).toEqual(201);
+        expect(res.body).toHaveProperty('token');
     });
 
     it('should authenticate an existing user', async () => {

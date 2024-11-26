@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const app = require('../app');
 
-dotenv.config({ path: '.env.test' });
+dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
+
+console.log(`Using environment: ${process.env.NODE_ENV}`);
+console.log(`Using database: ${process.env.MONGO_URI}`);
 
 beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -11,15 +14,17 @@ beforeAll(async () => {
     });
 });
 
-afterAll(async () => {
-    await mongoose.connection.close();
+afterEach(async () => {
+    const collections = await mongoose.connection.db.collections();
+    for (let collection of collections) {
+        await collection.deleteMany({});
+    }
 });
 
-afterEach(async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        await collections[key].deleteMany({});
-    }
+afterAll(async () => {
+    await mongoose.connection.dropDatabase();
+    await mongoose.connection.close();
+    console.log('Database cleared and connection closed.');
 });
 
 module.exports = app;
