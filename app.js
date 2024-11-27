@@ -17,7 +17,10 @@ app.use('/api', routes);
 const openApiDocument = YAML.load('./swagger.yaml');
 app.use('/', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-module.exports = app;
+// Pour du test :
+// app.get('/', (req, res) => {
+//     res.send('Bienvenue sur l\'API sMatch !');
+// });
 
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

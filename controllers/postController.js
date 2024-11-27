@@ -3,15 +3,19 @@ const Post = require('../models/Post');
 // Créer un post
 exports.createPost = async (req, res) => {
     try {
+        const { content, location } = req.body;
+
         const post = new Post({
-            content: req.body.content,
+            content,
             user: req.user.id,
-            media_uri: req.file ? req.file.path : null // URL de l'image sur Cloudinary
+            media_uri: req.file ? req.file.path : null, // URL de l'image sur Cloudinary
+            location: location ? { type: 'Point', coordinates: location } : undefined // Ajout de la géolocalisation
         });
+
         await post.save();
         res.status(201).json(post);
     } catch (error) {
-        res.status(500).json({ message: 'Erreur serveur' });
+        res.status(500).json({ message: 'Erreur serveur', error: error.message });
     }
 };
 
@@ -68,6 +72,30 @@ exports.getPostsByUser = async (req, res) => {
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Erreur serveur' });
+    }
+};
+
+// Récupérer les posts à proximité d'une position géographique
+exports.getPostsNearby = async (req, res) => {
+    const { longitude, latitude, maxDistance = 1000 } = req.query;
+
+    if (!longitude || !latitude) {
+        return res.status(400).json({ message: 'Les coordonnées longitude et latitude sont requises.' });
+    }
+
+    try {
+        const posts = await Post.find({
+            location: {
+                $near: {
+                    $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+                    $maxDistance: parseInt(maxDistance)
+                }
+            }
+        });
+
+        res.json(posts);
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur serveur', error: error.message });
     }
 };
 

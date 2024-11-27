@@ -307,6 +307,44 @@ paths:
                 $ref: '#/components/schemas/Post'
         '400':
           description: Données invalides
+
+  /posts/nearby:
+    get:
+      summary: Récupérer les posts proches d'une position géographique
+      tags:
+        - Posts
+      parameters:
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+          description: La longitude du point de référence
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+          description: La latitude du point de référence
+        - name: maxDistance
+          in: query
+          schema:
+            type: integer
+            default: 1000
+            description: Distance maximale en mètres pour rechercher les posts (par défaut 1000 mètres)
+      responses:
+        '200':
+          description: Liste des posts proches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+        '400':
+          description: Paramètres invalides ou manquants
+        '500':
+          description: Erreur serveur
           
   /posts/paginate:
     get:
