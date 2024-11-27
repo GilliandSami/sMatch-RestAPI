@@ -28,7 +28,14 @@ exports.updateUser = async (req, res) => {
         return res.status(403).json({ message: 'Accès refusé' });
     }
     try {
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const updateData = { ...req.body };
+
+        if (req.file) {
+            updateData.profile_picture = req.file.path;
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true, });
+
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: 'Erreur serveur' });

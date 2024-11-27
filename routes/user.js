@@ -1,5 +1,6 @@
 const express = require('express');
 const protect = require('../middleware/auth');
+const upload = require('../middleware/imageUpload');
 const { getAllUsers, getUserById, updateUser, deleteUser, followUser, unfollowUser, getUserStats } = require('../controllers/userController');
 const { validateUserUpdate } = require('../validators/userValidator');
 const router = express.Router();
@@ -11,7 +12,7 @@ router.get('/', protect, getAllUsers);
 router.get('/:id', protect, getUserById);
 
 // Mettre à jour les informations d'un utilisateur (seulement pour l'utilisateur connecté)
-router.patch('/:id', protect, validateUserUpdate, updateUser);
+router.patch('/:id', protect, upload.single('profile_picture'), validateUserUpdate, updateUser);
 
 // Supprimer un utilisateur (seulement pour l'utilisateur connecté)
 router.delete('/:id', protect, deleteUser);
