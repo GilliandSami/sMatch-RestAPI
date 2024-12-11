@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon app.js",
-    "start": "node app.js",
-    "test": "cross-env MONGO_URI=mongodb://127.0.0.1/smatch-test node --experimental-vm-modules node_modules/.bin/jest",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "cross-env MONGO_URI=mongodb://127.0.0.1/smatch-test node --experimental-vm-modules ./node_modules/jest/bin/jest.js --detectOpenHandles",
     "clear:db": "node bin/clearDB.js"
   },
   "jest": {
