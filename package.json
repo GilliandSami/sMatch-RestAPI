@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test": "cross-env MONGO_URI=mongodb://127.0.0.1/smatch-test node --experimental-vm-modules node_modules/.bin/jest",
     "clear:db": "node bin/clearDB.js"
   },
   "jest": {

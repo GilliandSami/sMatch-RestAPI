@@ -119,7 +119,7 @@ exports.deletePost = async (req, res) => {
     if (!post) return res.status(404).json({ message: 'Post non trouvé' });
     if (post.user.toString() !== req.user.id) return res.status(403).json({ message: 'Accès refusé' });
     try {
-        await post.remove();
+        await post.deleteOne();
         res.json({ message: 'Post supprimé avec succès' });
     } catch (error) {
         res.status(500).json({ message: 'Erreur serveur' });

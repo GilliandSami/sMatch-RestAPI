@@ -90,7 +90,7 @@ exports.deleteComment = async (req, res) => {
     if (!comment) return res.status(404).json({ message: 'Commentaire non trouvé' });
     if (comment.user.toString() !== req.user.id) return res.status(403).json({ message: 'Accès refusé' });
     try {
-        await comment.remove();
+        await comment.deleteOne();
         res.json({ message: 'Commentaire supprimé avec succès' });
     } catch (error) {
         res.status(500).json({ message: 'Erreur serveur' });
